@@ -61,7 +61,7 @@ export async function loader({ params }) {
   }
 
   const {data} = await res.json();
-  return data
+  return data;
 }
 
 export default Order;
