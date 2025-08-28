@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Form, redirect, useActionData, useNavigation } from "react-router-dom";
 import { createOrder } from "../../services/apiRestaurant";
 import Button from "../../ui/Button";
+import { useSelector } from "react-redux";
 
 // https://uibakery.io/regex-library/phone-number
 const isValidPhone = (str) =>
@@ -36,9 +37,10 @@ const fakeCart = [
 function CreateOrder() {
   // const [withPriority, setWithPriority] = useState(false);
   const navigation = useNavigation();
-  const isSubmitting = navigation.state === 'submitting';
+  const isSubmitting = navigation.state === "submitting";
   const formError = useActionData();
-  
+  const username = useSelector((state) => state.user.username);
+
   const cart = fakeCart;
 
   return (
@@ -48,38 +50,51 @@ function CreateOrder() {
       <Form method="POST">
         <div className="mb-5 flex gap-2 flex-col sm:flex-row sm:items-center">
           <label className="sm:basis-40">First Name</label>
-          <input className="input grow" type="text" name="customer" required />
+          <input className="input grow" type="text" name="customer" defaultValue={username}required />
         </div>
 
         <div className="mb-5 flex gap-2 flex-col sm:flex-row sm:items-center">
           <label className="sm:basis-40">Phone number</label>
           <div className="grow">
             <input className="input w-full" type="tel" name="phone" required />
-          {formError?.phone && <p className="text-xs mt-2 text-red-700 p-2 rounded-md bg-red-100">{formError.phone}</p> }
+            {formError?.phone && (
+              <p className="text-xs mt-2 text-red-700 p-2 rounded-md bg-red-100">
+                {formError.phone}
+              </p>
+            )}
           </div>
         </div>
 
         <div className="mb-5 flex gap-2 flex-col sm:flex-row sm:items-center">
           <label className="sm:basis-40">Address</label>
           <div className="grow">
-            <input className="input w-full" type="text" name="address" required />
+            <input
+              className="input w-full"
+              type="text"
+              name="address"
+              required
+            />
           </div>
         </div>
 
         <div className="mb-12 flex gap-5 items-center">
           <input
-          className="h-6 w-6 accent-yellow-400 focus:outline-none focus:ring focus:ring-yellow-400 focus:ring-offset-2"
+            className="h-6 w-6 accent-yellow-400 focus:outline-none focus:ring focus:ring-yellow-400 focus:ring-offset-2"
             type="checkbox"
             name="priority"
             id="priority"
             // value={withPriority}
             // onChange={(e) => setWithPriority(e.target.checked)}
           />
-          <label className="font-medium" htmlFor="priority">Want to yo give your order priority?</label>
+          <label className="font-medium" htmlFor="priority">
+            Want to yo give your order priority?
+          </label>
         </div>
 
         <div>
-          <Button disabled={isSubmitting} type="primary">{isSubmitting ? "Placing Order..." : "Order Now"}</Button>
+          <Button disabled={isSubmitting} type="primary">
+            {isSubmitting ? "Placing Order..." : "Order Now"}
+          </Button>
         </div>
         <input type="hidden" value={JSON.stringify(cart)} name="cart" />
       </Form>
@@ -98,11 +113,11 @@ export async function action({ request }) {
   };
 
   const errors = {};
-  if(!isValidPhone(order.phone)){
-    errors.phone = 'Please enter the correct number.'
+  if (!isValidPhone(order.phone)) {
+    errors.phone = "Please enter the correct number.";
   }
 
-  if(Object.keys(errors).length > 0) return errors;
+  if (Object.keys(errors).length > 0) return errors;
 
   try {
     const res = await fetch("https://react-fast-pizza-api.jonas.io/api/order", {
@@ -115,7 +130,7 @@ export async function action({ request }) {
 
     if (!res.ok) throw Error();
 
-    const newOrder  = await res.json();
+    const newOrder = await res.json();
     return redirect(`/order/${newOrder.data.id}`);
   } catch {
     throw Error("Failed creating your order");
